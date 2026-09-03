@@ -12,8 +12,22 @@ proyecto, compile el espacio de trabajo:
 cargo build
 ```
 
-Para usar el ejecutable desde el código fuente no hace falta instalarlo en el
-sistema:
+Para instalar Salmon como comando del sistema desde este checkout, ejecute:
+
+```bash
+cargo install --path crates/salmon-cli
+```
+
+Cargo instala el ejecutable como `salmon` en el directorio `bin` de su Cargo
+Home (normalmente `~/.cargo/bin`). Asegúrese de que ese directorio esté en su
+`PATH`; después podrá validar un archivo desde cualquier directorio:
+
+```bash
+salmon check ruta/al/automata.salmon
+```
+
+Para usar el ejecutable sin instalarlo en el sistema, ejecútelo desde el árbol
+fuente:
 
 ```bash
 cargo run -p salmon-cli -- check ruta/al/automata.salmon
