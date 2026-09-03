@@ -6,7 +6,7 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
 
-        <mxCell id="title" value="Salmon language model &amp;amp; parser internals" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#172B4D;" vertex="1" parent="1">
+        <mxCell id="title" value="Salmon language model, parser &amp;amp; simulator" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#172B4D;" vertex="1" parent="1">
           <mxGeometry x="50" y="25" width="900" height="40" as="geometry"/>
         </mxCell>
         <mxCell id="subtitle" value="Implemented Rust types and dependencies · crate salmon-lang 0.1.0" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#5E6C84;" vertex="1" parent="1">
@@ -27,8 +27,12 @@
           <mxGeometry x="65" y="345" width="530" height="42" as="geometry"/>
         </mxCell>
 
-        <mxCell id="parse-api" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;salmon_lang public façade&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;+ parse(source_name: &amp;amp;str, source: &amp;amp;str)&lt;br&gt;&amp;nbsp;&amp;nbsp;→ Result&amp;lt;Automaton, Vec&amp;lt;Diagnostic&amp;gt;&amp;gt;&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#5E6C84&quot;&gt;orchestrates lex → parse → analyze&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F2FF;strokeColor=#0C66E4;strokeWidth=2;fontColor=#172B4D;fontSize=12;align=left;verticalAlign=middle;spacing=12;arcSize=8;" vertex="1" parent="1">
-          <mxGeometry x="85" y="195" width="490" height="100" as="geometry"/>
+        <mxCell id="parse-api" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;parse · public façade&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;+ parse(source_name: &amp;amp;str,&lt;br&gt;&amp;nbsp;&amp;nbsp;source: &amp;amp;str)&lt;br&gt;→ Result&amp;lt;Automaton,&lt;br&gt;&amp;nbsp;&amp;nbsp;Vec&amp;lt;Diagnostic&amp;gt;&amp;gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F2FF;strokeColor=#0C66E4;strokeWidth=2;fontColor=#172B4D;fontSize=11;align=left;verticalAlign=middle;spacing=10;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="75" y="190" width="245" height="105" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="simulation-api" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;simulation · public API&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;+ accepts(automaton: &amp;amp;Automaton,&lt;br&gt;&amp;nbsp;&amp;nbsp;input: &amp;amp;[Symbol]) → bool&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#5E6C84&quot;&gt;DFA / NFA / ε-closure&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3FCEF;strokeColor=#00875A;strokeWidth=2;fontColor=#172B4D;fontSize=11;align=left;verticalAlign=middle;spacing=10;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="340" y="190" width="245" height="105" as="geometry"/>
         </mxCell>
 
         <mxCell id="lexer" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;lexer&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;Token { kind: TokenKind,&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;span: Span }&lt;br&gt;&lt;br&gt;TokenKind&lt;br&gt;Identifier(String) | String(String)&lt;br&gt;keywords | punctuation | Newline | Eof&lt;br&gt;&lt;br&gt;lex(source: &amp;amp;str)&lt;br&gt;→ (Vec&amp;lt;Token&amp;gt;, Vec&amp;lt;Diagnostic&amp;gt;)&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=11;align=left;verticalAlign=top;spacing=12;arcSize=6;" vertex="1" parent="1">
@@ -102,7 +106,8 @@
         </mxCell>
 
         <!-- Internal data flow -->
-        <mxCell id="edge-api-lexer" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0C66E4;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=0.85;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="parse-api" target="lexer"><mxGeometry x="-0.25" y="-10" relative="1" as="geometry"><Array as="points"><mxPoint x="502" y="395"/><mxPoint x="198" y="395"/></Array></mxGeometry></mxCell>
+        <mxCell id="edge-api-lexer" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0C66E4;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="parse-api" target="lexer"><mxGeometry x="-0.25" y="-10" relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-simulation-model" value="reads model + symbols" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00875A;strokeWidth=2;endArrow=open;endFill=0;fontSize=10;fontColor=#00875A;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.18;entryDx=0;entryDy=0;" edge="1" parent="1" source="simulation-api" target="automaton"><mxGeometry x="0" y="-12" relative="1" as="geometry"/></mxCell>
         <mxCell id="edge-lexer-parser" value="Vec&amp;lt;Token&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0C66E4;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;" edge="1" parent="1" source="lexer" target="parser"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="edge-parser-ast" value="builds" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6554C0;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=1;exitY=0.45;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="parser" target="ast"><mxGeometry x="0" y="-10" relative="1" as="geometry"><Array as="points"><mxPoint x="330" y="788"/><mxPoint x="330" y="594"/></Array></mxGeometry></mxCell>
         <mxCell id="edge-ast-semantic" value="AstAutomaton" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6554C0;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ast" target="semantic"><mxGeometry x="0" y="-10" relative="1" as="geometry"/></mxCell>

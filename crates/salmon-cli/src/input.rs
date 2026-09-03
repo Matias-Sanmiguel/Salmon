@@ -16,7 +16,9 @@ impl Error for InputError {}
 
 pub(crate) fn parse_input(input: &str, alphabet: &[Symbol]) -> Result<Vec<Symbol>, InputError> {
     if alphabet.iter().all(|symbol| symbol.0.chars().count() == 1)
-        && !input.chars().any(|character| character.is_whitespace() || character == '"')
+        && !input
+            .chars()
+            .any(|character| character.is_whitespace() || character == '"')
     {
         return Ok(input
             .chars()

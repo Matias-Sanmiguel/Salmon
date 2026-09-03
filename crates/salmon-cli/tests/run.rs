@@ -117,6 +117,40 @@ fn one_shot_runs_enfa_examples() {
     assert_eq!(rejected.stdout, b"NOT\n");
 }
 
+#[test]
+fn example_matrix() {
+    let cases = [
+        (dfa(), "", 0, "OK\n"),
+        (dfa(), "11", 0, "OK\n"),
+        (dfa(), "1", 1, "NOT\n"),
+        (nfa(), "ab", 0, "OK\n"),
+        (nfa(), "baba", 0, "OK\n"),
+        (nfa(), "aaa", 1, "NOT\n"),
+        (enfa(), "a", 0, "OK\n"),
+        (enfa(), "aa", 0, "OK\n"),
+        (enfa(), "", 1, "NOT\n"),
+    ];
+
+    for (path, input, expected_status, expected_stdout) in cases {
+        let output = salmon().args(["run", path, input]).output().unwrap();
+        assert_eq!(
+            output.status.code(),
+            Some(expected_status),
+            "unexpected exit status for {path} with input {input:?}"
+        );
+        assert_eq!(
+            output.stdout,
+            expected_stdout.as_bytes(),
+            "unexpected stdout for {path} with input {input:?}"
+        );
+        assert!(
+            output.stderr.is_empty(),
+            "unexpected stderr for {path} with input {input:?}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+}
+
 #[cfg(unix)]
 #[test]
 fn one_shot_rejects_a_non_unicode_input_argument() {

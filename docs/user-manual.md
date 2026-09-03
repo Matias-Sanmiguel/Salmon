@@ -1,6 +1,9 @@
 # Manual de usuario de Salmon
 
-**Salmon** significa **Super Automata Language for Modeling, Operations, and Notation**. Es un lenguaje declarativo para describir y validar autómatas finitos. En esta primera versión se validan AFD, AFND y AFND-ε; Salmon no simula cadenas ni transforma autómatas.
+**Salmon** significa **Super Automata Language for Modeling, Operations, and
+Notation**. Es un lenguaje declarativo para describir, validar y simular
+autómatas finitos. En esta versión se validan y ejecutan AFD, AFND y AFND-ε;
+las transformaciones todavía no están implementadas.
 
 ## Requisitos e instalación
 
@@ -20,10 +23,12 @@ cargo install --path crates/salmon-cli
 
 Cargo instala el ejecutable como `salmon` en el directorio `bin` de su Cargo
 Home (normalmente `~/.cargo/bin`). Asegúrese de que ese directorio esté en su
-`PATH`; después podrá validar un archivo desde cualquier directorio:
+`PATH`; después podrá validar o ejecutar un archivo desde cualquier directorio:
 
 ```bash
 salmon check ruta/al/automata.salmon
+salmon run ruta/al/automata.salmon palabra
+salmon run ruta/al/automata.salmon
 ```
 
 Para usar el ejecutable sin instalarlo en el sistema, ejecútelo desde el árbol
@@ -40,20 +45,52 @@ en `target/debug/salmon`:
 target/debug/salmon check ruta/al/automata.salmon
 ```
 
-El único subcomando del MVP es `check`. Recibe exactamente un archivo:
+Los subcomandos disponibles son `check` y `run`:
 
 ```text
 salmon check <archivo.salmon>
+salmon run <archivo.salmon> [entrada]
 ```
 
 El comando no exige la extensión `.salmon`, pero usarla facilita identificar
-los archivos fuente. Su código de salida es:
+los archivos fuente. `check` recibe exactamente un archivo y usa estos códigos
+de salida:
 
 | Código | Significado |
 | --- | --- |
 | `0` | El archivo es sintáctica y semánticamente válido. |
 | `1` | El archivo contiene uno o más errores de Salmon. |
 | `2` | El uso del comando es incorrecto o el archivo no se puede leer. |
+
+`run` con una entrada ejecuta el autómata una sola vez. Por ejemplo:
+
+```bash
+salmon run examples/dfa.salmon 11
+# OK
+```
+
+Sin la entrada, `run` abre una sesión interactiva:
+
+```text
+$ salmon run examples/dfa.salmon
+Salmon — even_ones
+> 11
+OK
+> 1
+NOT
+> :quit
+```
+
+En el modo de una ejecución, `OK` indica que la palabra fue aceptada y el
+proceso termina con `0`; `NOT` indica rechazo y termina con `1`. Una notación
+de entrada incorrecta produce `ERROR: <mensaje>` en la salida de error y
+termina con `2`. También terminan con `2` el uso incorrecto, los archivos que
+no se pueden leer, los autómatas inválidos y una entrada que no sea Unicode.
+
+En el modo interactivo, cada línea produce `OK`, `NOT` o `ERROR`. Un error de
+notación no cierra la sesión: se puede corregir la entrada siguiente. La orden
+exacta `:quit` y el fin del archivo cierran la sesión con código `0`; un error
+de E/S interactiva termina con `2`.
 
 ## Primer AFD
 
@@ -74,6 +111,55 @@ dfa ends_with_ab {
 El tipo `dfa` declara un AFD. `initial` nombra el estado inicial, `final` uno
 o más estados de aceptación y cada fila de estado enumera sus transiciones.
 En este caso el alfabeto se infiere como `a, b` a partir de las transiciones.
+
+## Cómo escribir una palabra de entrada
+
+Salmon admite dos formas de escribir la entrada de `run`:
+
+- **Compacta.** Si todos los símbolos del alfabeto tienen un solo carácter,
+  una entrada sin espacios ni comillas se separa por caracteres Unicode. Así,
+  `baba` representa `b`, `a`, `b`, `a`.
+- **Tokenizada.** Los espacios separan símbolos completos. Las comillas dobles
+  delimitan un símbolo que contiene espacios: `open "end marker"` representa
+  los símbolos `open` y `end marker`. También se pueden entrecomillar símbolos
+  de un carácter.
+
+Un alfabeto mixto, por ejemplo `a, "ab"`, desactiva la separación compacta:
+`ab` es el único símbolo `ab`, mientras que `a ab` son dos símbolos. Las
+comillas deben abarcar un token completo; una comilla sin cerrar o pegada a
+texto sin espacio produce `ERROR`.
+
+El modo de una ejecución recibe toda la palabra como un único argumento. Si
+la notación tokenizada contiene espacios, entrecomille ese argumento para el
+shell; por ejemplo: `salmon run maquina.salmon 'open "end marker"'`.
+
+La cadena vacía se representa con una línea en blanco en el modo interactivo.
+En el modo de una ejecución hay que pasar un argumento vacío del shell:
+
+```bash
+salmon run examples/dfa.salmon ''
+```
+
+La línea exacta y sin comillas `:quit` es una orden solo en el modo
+interactivo. `":quit"` se analiza como un símbolo ordinario y no cierra la
+sesión.
+
+## Resultados de los ejemplos
+
+La matriz siguiente también se comprueba de extremo a extremo en las pruebas
+de la CLI:
+
+| Archivo | Entrada | Resultado |
+| --- | --- | --- |
+| `examples/dfa.salmon` | palabra vacía | `OK` |
+| `examples/dfa.salmon` | `11` | `OK` |
+| `examples/dfa.salmon` | `1` | `NOT` |
+| `examples/nfa.salmon` | `ab` | `OK` |
+| `examples/nfa.salmon` | `baba` | `OK` |
+| `examples/nfa.salmon` | `aaa` | `NOT` |
+| `examples/enfa.salmon` | `a` | `OK` |
+| `examples/enfa.salmon` | `aa` | `OK` |
+| `examples/enfa.salmon` | palabra vacía | `NOT` |
 
 ## Gramática del MVP
 
@@ -240,8 +326,10 @@ puede ocasionar mensajes posteriores derivados.
 
 | Situación | Revise esto |
 | --- | --- |
-| El comando muestra `usage: salmon check <file.salmon>` | Use exactamente `check` y una ruta de archivo. |
+| El comando muestra `usage:` | Use `check` con un archivo, o `run` con un archivo y una entrada opcional. |
 | El comando termina con `2` y “could not read” | Compruebe la ruta, permisos y que el archivo exista. |
+| `run` muestra `ERROR: unclosed quoted symbol` | Cierre las comillas dobles dentro de la misma entrada. |
+| `run` muestra `ERROR: unexpected quote in input` | Separe el símbolo entrecomillado de los demás símbolos con espacios. |
 | `SYN001` aparece al usar un estado entre comillas | Los estados deben ser identificadores; las comillas son solo para símbolos. |
 | `SYN002` menciona una cadena sin cerrar | Cierre las comillas en la misma línea; no hay escapes de comillas. |
 | `SEM003` aparece tras declarar `alphabet` | Añada el símbolo usado a `alphabet` o ajuste la transición. |
@@ -251,10 +339,10 @@ puede ocasionar mensajes posteriores derivados.
 
 ## Límites de esta versión
 
-El MVP solo analiza y valida definiciones. No incluye simulación de cadenas,
-determinización, minimización, conversión a expresiones regulares, interfaz
-gráfica, importaciones, módulos, variables ni operaciones ejecutables. Para
-el diseño completo del lenguaje y del modelo, consulte la
+El MVP analiza y valida definiciones y simula palabras de entrada. Todavía no
+incluye transformaciones (determinización o minimización), conversión a
+expresiones regulares, interfaz gráfica, importaciones, módulos ni variables.
+Para el diseño completo del lenguaje y del modelo, consulte la
 [especificación](superpowers/specs/2026-09-02-salmon-language-design.md).
 
 ## Diagramas y referencias
