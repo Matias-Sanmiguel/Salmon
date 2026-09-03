@@ -35,7 +35,9 @@ pub(crate) fn lex(source: &str) -> (Vec<Token>, Vec<Diagnostic>) {
 
     while index < source.len() {
         let rest = &source[index..];
-        let character = rest.chars().next().expect("index is within source");
+        let Some(character) = rest.chars().next() else {
+            break;
+        };
 
         match character {
             ' ' | '\t' | '\r' => index += character.len_utf8(),
@@ -46,10 +48,9 @@ pub(crate) fn lex(source: &str) -> (Vec<Token>, Vec<Diagnostic>) {
             '/' if rest.starts_with("//") => {
                 index += 2;
                 while index < source.len() && !source[index..].starts_with(['\r', '\n']) {
-                    let comment_character = source[index..]
-                        .chars()
-                        .next()
-                        .expect("index is within source");
+                    let Some(comment_character) = source[index..].chars().next() else {
+                        break;
+                    };
                     index += comment_character.len_utf8();
                 }
             }
@@ -59,10 +60,9 @@ pub(crate) fn lex(source: &str) -> (Vec<Token>, Vec<Diagnostic>) {
                 let contents_start = index;
 
                 while index < source.len() {
-                    let string_character = source[index..]
-                        .chars()
-                        .next()
-                        .expect("index is within source");
+                    let Some(string_character) = source[index..].chars().next() else {
+                        break;
+                    };
                     if string_character == '"' || matches!(string_character, '\r' | '\n') {
                         break;
                     }
@@ -116,10 +116,9 @@ pub(crate) fn lex(source: &str) -> (Vec<Token>, Vec<Diagnostic>) {
                 let start = index;
                 index += character.len_utf8();
                 while index < source.len() {
-                    let identifier_character = source[index..]
-                        .chars()
-                        .next()
-                        .expect("index is within source");
+                    let Some(identifier_character) = source[index..].chars().next() else {
+                        break;
+                    };
                     if !is_identifier_continue(identifier_character) {
                         break;
                     }

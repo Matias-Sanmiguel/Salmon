@@ -43,7 +43,8 @@ impl Diagnostic {
 }
 
 pub fn render_diagnostic(source_name: &str, source: &str, diagnostic: &Diagnostic) -> String {
-    let prefix = &source[..diagnostic.span.start];
+    let start = previous_character_boundary(source, diagnostic.span.start);
+    let prefix = &source[..start];
     let line = prefix.bytes().filter(|byte| *byte == b'\n').count() + 1;
     let column = prefix
         .rsplit('\n')
@@ -61,6 +62,14 @@ pub fn render_diagnostic(source_name: &str, source: &str, diagnostic: &Diagnosti
     )
 }
 
+fn previous_character_boundary(source: &str, offset: usize) -> usize {
+    let mut boundary = offset.min(source.len());
+    while boundary > 0 && !source.is_char_boundary(boundary) {
+        boundary -= 1;
+    }
+    boundary
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -72,6 +81,26 @@ mod tests {
         assert_eq!(
             render_diagnostic("machine.salmon", "dfa x {\n  eps\n}", &diagnostic),
             "machine.salmon:2:3: error[SEM004]: eps is not allowed in dfa"
+        );
+    }
+
+    #[test]
+    fn renders_an_out_of_range_span_at_end_of_source() {
+        let diagnostic = Diagnostic::error("SEM004", "bad span", Span::new(99, 100));
+
+        assert_eq!(
+            render_diagnostic("machine.salmon", "dfa", &diagnostic),
+            "machine.salmon:1:4: error[SEM004]: bad span"
+        );
+    }
+
+    #[test]
+    fn renders_a_non_boundary_span_at_the_previous_character_boundary() {
+        let diagnostic = Diagnostic::error("SEM004", "bad span", Span::new(1, 2));
+
+        assert_eq!(
+            render_diagnostic("machine.salmon", "éx", &diagnostic),
+            "machine.salmon:1:1: error[SEM004]: bad span"
         );
     }
 }
