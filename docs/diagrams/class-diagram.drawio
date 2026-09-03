@@ -23,7 +23,7 @@
         <mxCell id="internal-zone" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FC;strokeColor=#A5ADBA;strokeWidth=1.5;arcSize=4;" vertex="1" parent="1">
           <mxGeometry x="45" y="325" width="570" height="650" as="geometry"/>
         </mxCell>
-        <mxCell id="internal-header" value="INTERNAL FRONT END · crate-private" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#42526E;strokeColor=#42526E;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=left;spacingLeft=18;arcSize=10;" vertex="1" parent="1">
+        <mxCell id="internal-header" value="INTERNAL IMPLEMENTATION · crate-private" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#42526E;strokeColor=#42526E;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=left;spacingLeft=18;arcSize=10;" vertex="1" parent="1">
           <mxGeometry x="65" y="345" width="530" height="42" as="geometry"/>
         </mxCell>
 
@@ -31,7 +31,7 @@
           <mxGeometry x="75" y="190" width="245" height="105" as="geometry"/>
         </mxCell>
 
-        <mxCell id="simulation-api" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;simulation · public API&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;+ accepts(automaton: &amp;amp;Automaton,&lt;br&gt;&amp;nbsp;&amp;nbsp;input: &amp;amp;[Symbol]) → bool&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#5E6C84&quot;&gt;DFA / NFA / ε-closure&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3FCEF;strokeColor=#00875A;strokeWidth=2;fontColor=#172B4D;fontSize=11;align=left;verticalAlign=middle;spacing=10;arcSize=8;" vertex="1" parent="1">
+        <mxCell id="accepts-api" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;accepts · public re-export&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;+ accepts(automaton: &amp;amp;Automaton,&lt;br&gt;&amp;nbsp;&amp;nbsp;input: &amp;amp;[Symbol]) → bool&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#5E6C84&quot;&gt;pub use simulation::accepts&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3FCEF;strokeColor=#00875A;strokeWidth=2;fontColor=#172B4D;fontSize=11;align=left;verticalAlign=middle;spacing=10;arcSize=8;" vertex="1" parent="1">
           <mxGeometry x="340" y="190" width="245" height="105" as="geometry"/>
         </mxCell>
 
@@ -49,6 +49,10 @@
 
         <mxCell id="semantic" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;semantic&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;Analysis (selected fields)&lt;br&gt;{ alphabet / alphabet_set,&lt;br&gt;&amp;nbsp; states / state_set / state_spans,&lt;br&gt;&amp;nbsp; initial, finals, used_symbols,&lt;br&gt;&amp;nbsp; transitions, transition_set,&lt;br&gt;&amp;nbsp; diagnostics, … }&lt;br&gt;&lt;br&gt;RawTransition&lt;br&gt;{ from, input, destinations, span }&lt;br&gt;&lt;br&gt;analyze(ast: AstAutomaton)&lt;br&gt;→ Result&amp;lt;Automaton, Vec&amp;lt;Diagnostic&amp;gt;&amp;gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=10;align=left;verticalAlign=top;spacing=12;arcSize=6;" vertex="1" parent="1">
           <mxGeometry x="340" y="700" width="245" height="250" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="simulation-module" value="&lt;b&gt;simulation · private module&lt;/b&gt; · &lt;font face=&quot;monospace&quot;&gt;mod simulation&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#5E6C84&quot;&gt;accepts implementation · epsilon_closure helper&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#00875A;strokeWidth=1.5;fontColor=#172B4D;fontSize=10;align=left;verticalAlign=middle;spacing=8;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="75" y="905" width="245" height="50" as="geometry"/>
         </mxCell>
 
         <mxCell id="model-zone" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4F8FF;strokeColor=#0C66E4;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
@@ -107,7 +111,7 @@
 
         <!-- Internal data flow -->
         <mxCell id="edge-api-lexer" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0C66E4;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="parse-api" target="lexer"><mxGeometry x="-0.25" y="-10" relative="1" as="geometry"/></mxCell>
-        <mxCell id="edge-simulation-model" value="reads model + symbols" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00875A;strokeWidth=2;endArrow=open;endFill=0;fontSize=10;fontColor=#00875A;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.18;entryDx=0;entryDy=0;" edge="1" parent="1" source="simulation-api" target="automaton"><mxGeometry x="0" y="-12" relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-accepts-model" value="accepts(&amp;amp;Automaton, &amp;amp;[Symbol])" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00875A;strokeWidth=2;endArrow=open;endFill=0;fontSize=9;fontColor=#00875A;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.18;entryDx=0;entryDy=0;" edge="1" parent="1" source="accepts-api" target="automaton"><mxGeometry x="0" y="-12" relative="1" as="geometry"/></mxCell>
         <mxCell id="edge-lexer-parser" value="Vec&amp;lt;Token&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0C66E4;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;" edge="1" parent="1" source="lexer" target="parser"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="edge-parser-ast" value="builds" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6554C0;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=1;exitY=0.45;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="parser" target="ast"><mxGeometry x="0" y="-10" relative="1" as="geometry"><Array as="points"><mxPoint x="330" y="788"/><mxPoint x="330" y="594"/></Array></mxGeometry></mxCell>
         <mxCell id="edge-ast-semantic" value="AstAutomaton" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6554C0;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ast" target="semantic"><mxGeometry x="0" y="-10" relative="1" as="geometry"/></mxCell>
