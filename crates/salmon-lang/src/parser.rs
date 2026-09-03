@@ -122,9 +122,11 @@ impl<'a> Parser<'a> {
         self.expect("`:`", |kind| matches!(kind, TokenKind::Colon))?;
 
         let mut symbols = vec![self.parse_symbol("an alphabet symbol")?];
+        self.skip_newlines();
         while matches!(self.current().kind, TokenKind::Comma) {
             self.advance();
             symbols.push(self.parse_symbol("an alphabet symbol after `,`")?);
+            self.skip_newlines();
         }
         let end = symbols.last()?.span.end;
         Some(AstItem::Alphabet {
@@ -150,9 +152,11 @@ impl<'a> Parser<'a> {
         self.expect("`:`", |kind| matches!(kind, TokenKind::Colon))?;
 
         let mut states = vec![self.parse_identifier("a final state")?];
+        self.skip_newlines();
         while matches!(self.current().kind, TokenKind::Comma) {
             self.advance();
             states.push(self.parse_identifier("a final state after `,`")?);
+            self.skip_newlines();
         }
         let end = states.last()?.span.end;
         Some(AstItem::Final {
@@ -166,9 +170,11 @@ impl<'a> Parser<'a> {
         self.expect("`:`", |kind| matches!(kind, TokenKind::Colon))?;
 
         let mut transitions = vec![self.parse_transition()?];
+        self.skip_newlines();
         while matches!(self.current().kind, TokenKind::Comma) {
             self.advance();
             transitions.push(self.parse_transition()?);
+            self.skip_newlines();
         }
         let end = transitions.last()?.span.end;
         Some(AstItem::State(AstState {
@@ -191,6 +197,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_input(&mut self) -> Option<Spanned<AstInput>> {
+        self.skip_newlines();
         let token = self.current().clone();
         let value = match token.kind {
             TokenKind::Identifier(value) | TokenKind::String(value) => AstInput::Symbol(value),
@@ -215,9 +222,14 @@ impl<'a> Parser<'a> {
         self.advance();
         let mut destinations = vec![self.parse_identifier("a destination state")?];
         loop {
+            self.skip_newlines();
             match self.current().kind {
                 TokenKind::Comma => {
                     self.advance();
+                    if self.destination_list_is_unclosed() {
+                        self.error("SYN002", "unclosed `[`", self.current().span);
+                        return None;
+                    }
                     destinations.push(self.parse_identifier("a destination state after `,`")?);
                 }
                 TokenKind::RightBracket => {
@@ -225,6 +237,10 @@ impl<'a> Parser<'a> {
                     return Some(destinations);
                 }
                 TokenKind::Eof | TokenKind::RightBrace => {
+                    self.error("SYN002", "unclosed `[`", self.current().span);
+                    return None;
+                }
+                _ if self.starts_item() => {
                     self.error("SYN002", "unclosed `[`", self.current().span);
                     return None;
                 }
@@ -241,6 +257,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_symbol(&mut self, expected: &str) -> Option<Spanned<String>> {
+        self.skip_newlines();
         let token = self.current().clone();
         let value = match token.kind {
             TokenKind::Identifier(value) | TokenKind::String(value) => value,
@@ -257,6 +274,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_identifier(&mut self, expected: &str) -> Option<Spanned<String>> {
+        self.skip_newlines();
         let token = self.current().clone();
         let TokenKind::Identifier(value) = token.kind else {
             self.error("SYN001", format!("expected {expected}"), token.span);
@@ -290,6 +308,7 @@ impl<'a> Parser<'a> {
         expected: &str,
         matches_expected: impl FnOnce(&TokenKind) -> bool,
     ) -> Option<Token> {
+        self.skip_newlines();
         let token = self.current().clone();
         if matches_expected(&token.kind) {
             self.advance();
@@ -305,11 +324,33 @@ impl<'a> Parser<'a> {
             .push(Diagnostic::error(code, message, span));
     }
 
+    fn destination_list_is_unclosed(&mut self) -> bool {
+        self.skip_newlines();
+        matches!(self.current().kind, TokenKind::Eof | TokenKind::RightBrace) || self.starts_item()
+    }
+
+    fn starts_item(&self) -> bool {
+        matches!(
+            self.current().kind,
+            TokenKind::Alphabet | TokenKind::Initial | TokenKind::Final
+        ) || matches!(self.current().kind, TokenKind::Identifier(_))
+            && self.next_non_newline_is_colon()
+    }
+
+    fn next_non_newline_is_colon(&self) -> bool {
+        self.tokens
+            .iter()
+            .skip(self.position + 1)
+            .find(|token| !matches!(token.kind, TokenKind::Newline))
+            .is_some_and(|token| matches!(token.kind, TokenKind::Colon))
+    }
+
     fn recover_item(&mut self) {
         while !matches!(
             self.current().kind,
             TokenKind::Newline | TokenKind::RightBrace | TokenKind::Eof
-        ) {
+        ) && !self.starts_item()
+        {
             self.advance();
         }
         if matches!(self.current().kind, TokenKind::Newline) {
@@ -364,5 +405,47 @@ mod tests {
             let errors = parse_tokens(&tokens).unwrap_err();
             assert!(errors.iter().any(|error| error.code == "SYN002"));
         }
+    }
+
+    #[test]
+    fn treats_newlines_as_trivia_inside_productions() {
+        let source = "nfa x {\ninitial:\nq0\nq0:\na=q1\nq1: a=[q0,\nq1]\n}";
+        let (tokens, lex_errors) = lex(source);
+        assert!(lex_errors.is_empty());
+
+        let ast = parse_tokens(&tokens).unwrap();
+        let states = ast
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                AstItem::State(state) => Some(state),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(states.len(), 2);
+        assert_eq!(states[0].transitions[0].destinations[0].value, "q1");
+        assert_eq!(states[1].transitions[0].destinations.len(), 2);
+    }
+
+    #[test]
+    fn reports_unclosed_destination_lists_at_item_boundaries() {
+        for source in ["nfa x { q0: a=[q1\n}", "nfa x { q0: a=[q1 initial: q0 }"] {
+            let (tokens, lex_errors) = lex(source);
+            assert!(lex_errors.is_empty());
+
+            let errors = parse_tokens(&tokens).unwrap_err();
+            assert!(errors.iter().any(|error| error.code == "SYN002"));
+        }
+    }
+
+    #[test]
+    fn resumes_at_a_compact_declaration_after_an_unclosed_destination_list() {
+        let (tokens, lex_errors) = lex("nfa x { q0: a=[q1 initial q0 }");
+        assert!(lex_errors.is_empty());
+
+        let errors = parse_tokens(&tokens).unwrap_err();
+        assert_eq!(errors.len(), 2);
+        assert_eq!(errors[0].code, "SYN002");
+        assert_eq!(errors[1].code, "SYN001");
     }
 }
