@@ -28,6 +28,32 @@ fn invalid_definition_exits_one_with_a_positioned_error() {
     assert!(stderr.contains("invalid.salmon:4:9: error[SEM004]"));
 }
 
+#[cfg(unix)]
+#[test]
+fn positioned_error_preserves_a_non_utf8_unix_filename() {
+    use std::ffi::OsString;
+    use std::os::unix::ffi::OsStringExt;
+
+    let directory = std::env::temp_dir().join(format!(
+        "salmon-cli-non-utf8-filename-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&directory).unwrap();
+    let path = directory.join(OsString::from_vec(b"invalid-\xff.salmon".to_vec()));
+    std::fs::write(&path, include_bytes!("fixtures/invalid.salmon")).unwrap();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_salmon"))
+        .arg("check")
+        .arg(&path)
+        .output()
+        .unwrap();
+
+    std::fs::remove_dir_all(&directory).unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.contains("invalid-\u{fffd}.salmon:4:9: error[SEM004]"));
+}
+
 #[test]
 fn usage_and_io_failures_exit_two() {
     let no_args = Command::new(env!("CARGO_BIN_EXE_salmon")).output().unwrap();

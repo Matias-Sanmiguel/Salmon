@@ -4,15 +4,11 @@ pub mod model;
 pub use diagnostic::{Diagnostic, Severity, Span, render_diagnostic};
 pub use model::{Automaton, AutomatonKind, StateId, Symbol, Transition};
 
-#[allow(dead_code)]
 mod ast;
-#[allow(dead_code)]
 mod lexer;
 
-#[allow(dead_code)]
 mod parser;
 
-#[allow(dead_code)]
 mod semantic;
 
 pub fn parse(source_name: &str, source: &str) -> Result<Automaton, Vec<Diagnostic>> {

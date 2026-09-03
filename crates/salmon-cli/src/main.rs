@@ -28,16 +28,16 @@ fn main() -> ExitCode {
 
     let source_name = Path::new(path)
         .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or("<input>");
+        .unwrap_or(path.as_os_str())
+        .to_string_lossy();
 
-    match salmon_lang::parse(source_name, &source) {
+    match salmon_lang::parse(&source_name, &source) {
         Ok(_) => ExitCode::SUCCESS,
         Err(diagnostics) => {
             for diagnostic in diagnostics {
                 eprintln!(
                     "{}",
-                    salmon_lang::render_diagnostic(source_name, &source, &diagnostic)
+                    salmon_lang::render_diagnostic(&source_name, &source, &diagnostic)
                 );
             }
             ExitCode::from(1)
