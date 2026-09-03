@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-09-03T00:00:00.000Z" agent="Codex" version="26.0.16" type="device" compressed="false">
+  <diagram id="salmon-class-model" name="Salmon class diagram">
+    <mxGraphModel dx="1600" dy="1050" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1050" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="Salmon language model &amp;amp; parser internals" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#172B4D;" vertex="1" parent="1">
+          <mxGeometry x="50" y="25" width="900" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="subtitle" value="Implemented Rust types and dependencies · crate salmon-lang 0.1.0" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=13;fontColor=#5E6C84;" vertex="1" parent="1">
+          <mxGeometry x="52" y="65" width="800" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="internal-zone" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F9FC;strokeColor=#A5ADBA;strokeWidth=1.5;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="45" y="110" width="570" height="865" as="geometry"/>
+        </mxCell>
+        <mxCell id="internal-header" value="INTERNAL FRONT END · crate-private" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#42526E;strokeColor=#42526E;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=left;spacingLeft=18;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="65" y="130" width="530" height="42" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="parse-api" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;salmon_lang public façade&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;+ parse(source_name: &amp;amp;str, source: &amp;amp;str)&lt;br&gt;&amp;nbsp;&amp;nbsp;→ Result&amp;lt;Automaton, Vec&amp;lt;Diagnostic&amp;gt;&amp;gt;&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#5E6C84&quot;&gt;orchestrates lex → parse → analyze&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F2FF;strokeColor=#0C66E4;strokeWidth=2;fontColor=#172B4D;fontSize=12;align=left;verticalAlign=middle;spacing=12;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="85" y="195" width="490" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lexer" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;lexer&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;Token { kind: TokenKind,&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;span: Span }&lt;br&gt;&lt;br&gt;TokenKind&lt;br&gt;Identifier(String) | String(String)&lt;br&gt;keywords | punctuation | Newline | Eof&lt;br&gt;&lt;br&gt;lex(source: &amp;amp;str)&lt;br&gt;→ (Vec&amp;lt;Token&amp;gt;, Vec&amp;lt;Diagnostic&amp;gt;)&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=11;align=left;verticalAlign=top;spacing=12;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="75" y="340" width="245" height="245" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ast" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;ast · syntax representation&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;Spanned&amp;lt;T&amp;gt; { value: T, span: Span }&lt;br&gt;&lt;br&gt;AstAutomaton&lt;br&gt;{ kind: Spanned&amp;lt;AutomatonKind&amp;gt;,&lt;br&gt;&amp;nbsp; name: Spanned&amp;lt;String&amp;gt;,&lt;br&gt;&amp;nbsp; items: Vec&amp;lt;AstItem&amp;gt;, span: Span }&lt;br&gt;&lt;br&gt;AstItem :: Alphabet | Initial | Final | State&lt;br&gt;AstState { name, transitions, span }&lt;br&gt;AstTransition { input, destinations, span }&lt;br&gt;AstInput :: Symbol(String) | Epsilon&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6554C0;strokeWidth=1.5;fontColor=#172B4D;fontSize=10;align=left;verticalAlign=top;spacing=12;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="340" y="340" width="245" height="245" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="parser" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;parser&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;Parser&amp;lt;'a&amp;gt;&lt;br&gt;{ tokens: &amp;amp;'a [Token],&lt;br&gt;&amp;nbsp; position: usize,&lt;br&gt;&amp;nbsp; diagnostics: Vec&amp;lt;Diagnostic&amp;gt; }&lt;br&gt;&lt;br&gt;parse_tokens(tokens: &amp;amp;[Token])&lt;br&gt;→ Result&amp;lt;AstAutomaton,&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; Vec&amp;lt;Diagnostic&amp;gt;&amp;gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=11;align=left;verticalAlign=top;spacing=12;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="75" y="635" width="245" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="semantic" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;semantic&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;monospace&quot;&gt;Analysis&lt;br&gt;{ alphabet / alphabet_set,&lt;br&gt;&amp;nbsp; states / state_set / state_spans,&lt;br&gt;&amp;nbsp; initial, finals, used_symbols,&lt;br&gt;&amp;nbsp; transitions, transition_set,&lt;br&gt;&amp;nbsp; diagnostics }&lt;br&gt;&lt;br&gt;RawTransition&lt;br&gt;{ from, input, destinations, span }&lt;br&gt;&lt;br&gt;analyze(ast: AstAutomaton)&lt;br&gt;→ Result&amp;lt;Automaton, Vec&amp;lt;Diagnostic&amp;gt;&amp;gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=10;align=left;verticalAlign=top;spacing=12;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="340" y="635" width="245" height="275" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="model-zone" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4F8FF;strokeColor=#0C66E4;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="650" y="110" width="900" height="580" as="geometry"/>
+        </mxCell>
+        <mxCell id="model-header" value="PARSER-INDEPENDENT MODEL · public API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0C66E4;strokeColor=#0C66E4;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=left;spacingLeft=18;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="670" y="130" width="860" height="42" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="automaton" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;Automaton&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;monospace&quot;&gt;+ name: String&lt;br&gt;+ kind: AutomatonKind&lt;br&gt;+ alphabet: Vec&amp;lt;Symbol&amp;gt;&lt;br&gt;+ states: Vec&amp;lt;StateId&amp;gt;&lt;br&gt;+ initial: StateId&lt;br&gt;+ finals: Vec&amp;lt;StateId&amp;gt;&lt;br&gt;+ transitions: Vec&amp;lt;Transition&amp;gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=2;fontColor=#172B4D;fontSize=12;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="690" y="205" width="350" height="275" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="automaton-kind" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;«enum» AutomatonKind&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;monospace&quot;&gt;Dfa&lt;br&gt;Nfa&lt;br&gt;Enfa&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=12;align=left;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="205" width="190" height="135" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="state-id" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;StateId&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;monospace&quot;&gt;+ 0: String&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=12;align=left;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="205" width="190" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="symbol" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;Symbol&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;monospace&quot;&gt;+ 0: String&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=12;align=left;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="325" width="190" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="transition" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;Transition&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;monospace&quot;&gt;+ from: StateId&lt;br&gt;+ input: Option&amp;lt;Symbol&amp;gt;&lt;br&gt;+ to: Vec&amp;lt;StateId&amp;gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0C66E4;strokeWidth=1.5;fontColor=#172B4D;fontSize=12;align=left;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="395" width="190" height="145" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="model-note" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;Stable boundary&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#5E6C84&quot;&gt;No lexer, AST, parser, or semantic types leak into this model.&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DEEBFF;strokeColor=#4C9AFF;dashed=1;fontColor=#172B4D;fontSize=12;align=left;verticalAlign=middle;spacing=10;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="575" width="420" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="diagnostic-zone" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8F6;strokeColor=#FF7452;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="650" y="715" width="900" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="diagnostic-header" value="DIAGNOSTICS · public API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DE350B;strokeColor=#DE350B;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=left;spacingLeft=18;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="670" y="735" width="860" height="42" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="diagnostic" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;Diagnostic&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;monospace&quot;&gt;+ code: &amp;amp;'static str&lt;br&gt;+ message: String&lt;br&gt;+ severity: Severity&lt;br&gt;+ span: Span&lt;br&gt;&lt;br&gt;+ error(code: &amp;amp;'static str, message: impl Into&amp;lt;String&amp;gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; span: Span) → Self&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF7452;strokeWidth=1.5;fontColor=#172B4D;fontSize=10;align=left;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="690" y="800" width="355" height="145" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="span" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;Span&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;monospace&quot;&gt;+ start: usize&lt;br&gt;+ end: usize&lt;br&gt;&lt;br&gt;+ new(start: usize,&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; end: usize) → Self&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF7452;strokeWidth=1.5;fontColor=#172B4D;fontSize=10;align=left;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="800" width="210" height="125" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="severity" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;«enum» Severity&lt;/b&gt;&lt;hr&gt;&lt;font face=&quot;monospace&quot;&gt;Error&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF7452;strokeWidth=1.5;fontColor=#172B4D;fontSize=11;align=left;verticalAlign=top;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="800" width="170" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="render-diagnostic" value="render_diagnostic(source_name: &amp;amp;str, source: &amp;amp;str, diagnostic: &amp;amp;Diagnostic) → String" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBE6;strokeColor=#FF7452;fontColor=#172B4D;fontSize=10;fontFamily=monospace;align=center;verticalAlign=middle;spacing=6;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="925" width="420" height="32" as="geometry"/>
+        </mxCell>
+
+        <!-- Internal data flow -->
+        <mxCell id="edge-api-lexer" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0C66E4;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;" edge="1" parent="1" source="parse-api" target="lexer"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-lexer-parser" value="Vec&amp;lt;Token&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0C66E4;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;" edge="1" parent="1" source="lexer" target="parser"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-parser-ast" value="builds" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6554C0;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=1;exitY=0.45;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="parser" target="ast"><mxGeometry x="0" y="-10" relative="1" as="geometry"><Array as="points"><mxPoint x="330" y="723"/><mxPoint x="330" y="524"/></Array></mxGeometry></mxCell>
+        <mxCell id="edge-ast-semantic" value="AstAutomaton" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6554C0;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=10;fontColor=#44546A;labelBackgroundColor=#F7F9FC;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ast" target="semantic"><mxGeometry x="0" y="-10" relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-semantic-model" value="produces" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0C66E4;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontStyle=1;fontColor=#0C66E4;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="semantic" target="automaton"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-ast-kind" value="depends on public kind" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6554C0;strokeWidth=1.5;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#6554C0;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ast" target="automaton-kind"><mxGeometry x="0.25" y="-10" relative="1" as="geometry"><Array as="points"><mxPoint x="625" y="389"/><mxPoint x="625" y="190"/><mxPoint x="1185" y="190"/></Array></mxGeometry></mxCell>
+        <mxCell id="edge-lexer-diagnostic" value="reports" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF7452;strokeWidth=1.5;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#DE350B;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.65;entryDx=0;entryDy=0;" edge="1" parent="1" source="lexer" target="diagnostic"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="60" y="600"/><mxPoint x="60" y="895"/></Array></mxGeometry></mxCell>
+        <mxCell id="edge-parser-diagnostic" value="reports" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF7452;strokeWidth=1.5;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#DE350B;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.45;entryDx=0;entryDy=0;" edge="1" parent="1" source="parser" target="diagnostic"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-semantic-diagnostic" value="reports" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF7452;strokeWidth=1.5;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#DE350B;exitX=1;exitY=0.85;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="semantic" target="diagnostic"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Model containment -->
+        <mxCell id="edge-automaton-kind" value="kind  1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#42526E;strokeWidth=1.25;startArrow=diamondThin;startFill=1;endArrow=none;fontSize=10;fontColor=#42526E;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.18;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;" edge="1" parent="1" source="automaton" target="automaton-kind"><mxGeometry x="0.35" y="-12" relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-automaton-state" value="states 0..* · initial 1 · finals 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#42526E;strokeWidth=1.25;startArrow=diamondThin;startFill=1;endArrow=none;fontSize=9;fontColor=#42526E;labelBackgroundColor=#F4F8FF;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="automaton" target="state-id"><mxGeometry x="0.35" y="-12" relative="1" as="geometry"><Array as="points"><mxPoint x="953" y="190"/><mxPoint x="1415" y="190"/></Array></mxGeometry></mxCell>
+        <mxCell id="edge-automaton-symbol" value="alphabet 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#42526E;strokeWidth=1.25;startArrow=diamondThin;startFill=1;endArrow=none;fontSize=10;fontColor=#42526E;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.58;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="automaton" target="symbol"><mxGeometry x="0.45" y="-12" relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-automaton-transition" value="transitions 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#42526E;strokeWidth=1.25;startArrow=diamondThin;startFill=1;endArrow=none;fontSize=10;fontColor=#42526E;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.82;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="automaton" target="transition"><mxGeometry x="0.2" y="-12" relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-transition-state" value="from 1 · to 1..*" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#42526E;strokeWidth=1.25;startArrow=diamondThin;startFill=1;endArrow=none;fontSize=10;fontColor=#42526E;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="transition" target="state-id"><mxGeometry x="0" y="-12" relative="1" as="geometry"><Array as="points"><mxPoint x="1525" y="446"/><mxPoint x="1525" y="250"/></Array></mxGeometry></mxCell>
+        <mxCell id="edge-transition-symbol" value="input 0..1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#42526E;strokeWidth=1.25;startArrow=diamondThin;startFill=1;endArrow=none;fontSize=10;fontColor=#42526E;labelBackgroundColor=#F4F8FF;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="transition" target="symbol"><mxGeometry x="0.15" y="-12" relative="1" as="geometry"><Array as="points"><mxPoint x="1300" y="497"/><mxPoint x="1300" y="393"/></Array></mxGeometry></mxCell>
+        <mxCell id="edge-diagnostic-span" value="span 1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6B778C;strokeWidth=1.25;startArrow=diamondThin;startFill=1;endArrow=none;fontSize=10;fontColor=#42526E;labelBackgroundColor=#FFF8F6;" edge="1" parent="1" source="diagnostic" target="span"><mxGeometry x="0.15" y="-12" relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge-diagnostic-severity" value="severity 1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6B778C;strokeWidth=1.25;startArrow=diamondThin;startFill=1;endArrow=none;fontSize=10;fontColor=#42526E;labelBackgroundColor=#FFF8F6;exitX=0.82;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="diagnostic" target="severity"><mxGeometry x="0.3" y="-12" relative="1" as="geometry"><Array as="points"><mxPoint x="981" y="790"/><mxPoint x="1425" y="790"/></Array></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
