@@ -1,8 +1,8 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::ast::{AstAutomaton, AstInput, AstItem, Spanned};
 use crate::diagnostic::{Diagnostic, Span};
-use crate::model::{Automaton, StateId, Symbol, Transition};
+use crate::model::{Automaton, AutomatonKind, StateId, Symbol, Transition};
 
 pub(crate) fn analyze(mut ast: AstAutomaton) -> Result<Automaton, Vec<Diagnostic>> {
     let mut analysis = Analysis::default();
@@ -26,6 +26,7 @@ struct Analysis {
     explicit_alphabet: bool,
     states: Vec<String>,
     state_set: HashSet<String>,
+    state_spans: HashMap<String, Span>,
     initial: Option<String>,
     initial_count: usize,
     finals: Vec<String>,
@@ -41,6 +42,7 @@ struct RawTransition {
     from: String,
     input: Option<String>,
     destinations: Vec<String>,
+    span: Span,
 }
 
 impl Analysis {
@@ -61,7 +63,7 @@ impl Analysis {
     }
 
     fn collect_initial(&mut self, state: Spanned<String>, span: Span) {
-        self.add_state(&state.value);
+        self.add_state(&state);
         self.initial_count += 1;
         if self.initial_count == 1 {
             self.initial = Some(state.value);
@@ -85,7 +87,7 @@ impl Analysis {
         }
 
         for state in states {
-            self.add_state(&state.value);
+            self.add_state(&state);
             if self.final_set.insert(state.value.clone()) {
                 self.finals.push(state.value);
             }
@@ -97,7 +99,7 @@ impl Analysis {
         state: Spanned<String>,
         transitions: Vec<crate::ast::AstTransition>,
     ) {
-        self.add_state(&state.value);
+        self.add_state(&state);
 
         for transition in transitions {
             let input = match transition.input.value {
@@ -127,7 +129,7 @@ impl Analysis {
             let mut destinations = Vec::with_capacity(transition.destinations.len());
             let mut destination_set = HashSet::new();
             for destination in transition.destinations {
-                self.add_state(&destination.value);
+                self.add_state(&destination);
                 if !destination_set.insert(destination.value.clone()) {
                     self.diagnostics.push(Diagnostic::error(
                         "SEM002",
@@ -142,13 +144,15 @@ impl Analysis {
                 from: state.value.clone(),
                 input,
                 destinations,
+                span: transition.span,
             });
         }
     }
 
-    fn add_state(&mut self, state: &str) {
-        if self.state_set.insert(state.to_owned()) {
-            self.states.push(state.to_owned());
+    fn add_state(&mut self, state: &Spanned<String>) {
+        if self.state_set.insert(state.value.clone()) {
+            self.state_spans.insert(state.value.clone(), state.span);
+            self.states.push(state.value.clone());
         }
     }
 
@@ -164,12 +168,14 @@ impl Analysis {
                 }
             }
         } else {
-            for symbol in self.used_symbols {
+            for symbol in &self.used_symbols {
                 if self.alphabet_set.insert(symbol.value.clone()) {
-                    self.alphabet.push(symbol.value);
+                    self.alphabet.push(symbol.value.clone());
                 }
             }
         }
+
+        self.validate_kind(ast.kind.value);
 
         if self.initial_count == 0 {
             self.diagnostics.push(Diagnostic::error(
@@ -210,6 +216,59 @@ impl Analysis {
                 })
                 .collect(),
         })
+    }
+
+    fn validate_kind(&mut self, kind: AutomatonKind) {
+        if matches!(kind, AutomatonKind::Dfa | AutomatonKind::Nfa) {
+            for transition in &self.transitions {
+                if transition.input.is_none() {
+                    self.diagnostics.push(Diagnostic::error(
+                        "SEM004",
+                        "epsilon transitions are only allowed in enfa",
+                        transition.span,
+                    ));
+                }
+            }
+        }
+
+        if kind != AutomatonKind::Dfa {
+            return;
+        }
+
+        let mut deterministic = HashSet::new();
+        let mut nondeterministic = HashSet::new();
+        for transition in &self.transitions {
+            if transition.destinations.len() > 1 {
+                self.diagnostics.push(Diagnostic::error(
+                    "SEM005",
+                    "dfa transitions must have exactly one destination",
+                    transition.span,
+                ));
+            }
+
+            let Some(input) = &transition.input else {
+                continue;
+            };
+            let key = (transition.from.clone(), input.clone());
+            if transition.destinations.len() > 1 {
+                nondeterministic.insert(key);
+            } else {
+                deterministic.insert(key);
+            }
+        }
+
+        for state in &self.states {
+            for symbol in &self.alphabet {
+                let key = (state.clone(), symbol.clone());
+                if !deterministic.contains(&key) && !nondeterministic.contains(&key) {
+                    self.diagnostics.push(Diagnostic::error(
+                        "SEM006",
+                        format!("missing dfa transition from `{state}` on `{symbol}`"),
+                        self.state_spans[state],
+                    ));
+                }
+            }
+        }
     }
 }
 
@@ -281,5 +340,38 @@ mod tests {
         let errors =
             analyze_source("nfa x { alphabet:a,a initial:q0 final:q1 q0:a=q1 }").unwrap_err();
         assert!(errors.iter().any(|error| error.code == "SEM002"));
+    }
+
+    #[test]
+    fn enforces_kind_specific_rules() {
+        let cases = [
+            ("dfa x { initial:q0 final:q1 q0:eps=q1 }", "SEM004"),
+            ("nfa x { initial:q0 final:q1 q0:eps=q1 }", "SEM004"),
+            (
+                "dfa x { initial:q0 final:q1 q0:a=[q0,q1] q1:a=q1 }",
+                "SEM005",
+            ),
+            ("dfa x { initial:q0 final:q1 q0:a=q1 }", "SEM006"),
+        ];
+        for (source, code) in cases {
+            let errors = analyze_source(source).unwrap_err();
+            assert!(
+                errors.iter().any(|error| error.code == code),
+                "missing {code}"
+            );
+        }
+    }
+
+    #[test]
+    fn permits_epsilon_only_for_enfa() {
+        let automaton = analyze_source("enfa x { initial:q0 final:q1 q0:eps=q1 }").unwrap();
+        assert_eq!(automaton.transitions[0].input, None);
+    }
+
+    #[test]
+    fn reports_nondeterministic_epsilon_transitions_in_dfas() {
+        let errors = analyze_source("dfa x { initial:q0 final:q1 q0:eps=[q0,q1] }").unwrap_err();
+        assert!(errors.iter().any(|error| error.code == "SEM004"));
+        assert!(errors.iter().any(|error| error.code == "SEM005"));
     }
 }
