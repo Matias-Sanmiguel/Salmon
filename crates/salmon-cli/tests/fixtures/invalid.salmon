@@ -1,0 +1,5 @@
+dfa broken {
+    initial: q0
+    final: q1
+    q0: eps=q1
+}

@@ -1,0 +1,8 @@
+dfa ends_with_ab {
+    initial: q0
+    final: q2
+
+    q0: a=q1, b=q0
+    q1: a=q1, b=q2
+    q2: a=q1, b=q0
+}
