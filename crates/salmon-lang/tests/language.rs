@@ -1,6 +1,14 @@
 use salmon_lang::{AutomatonKind, StateId, Symbol, parse};
 
 #[test]
+fn readme_example_stays_valid() {
+    let source = include_str!("../../../README.md");
+    let start = source.find("```salmon\n").unwrap() + "```salmon\n".len();
+    let end = source[start..].find("\n```").unwrap() + start;
+    parse("README.md", &source[start..end]).unwrap();
+}
+
+#[test]
 fn parses_a_complete_dfa() {
     let source = "dfa toggle { initial:q0 final:q1 q0:a=q1 q1:a=q0 }";
     let automaton = parse("toggle.salmon", source).unwrap();
