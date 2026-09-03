@@ -11,6 +11,10 @@ mod parser;
 
 mod semantic;
 
+mod simulation;
+
+pub use simulation::accepts;
+
 pub fn parse(source_name: &str, source: &str) -> Result<Automaton, Vec<Diagnostic>> {
     let (tokens, mut diagnostics) = lexer::lex(source);
 
