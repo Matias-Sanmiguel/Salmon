@@ -193,3 +193,10 @@ La primera versión estará completa cuando:
 4. `salmon check valid.salmon` termine con `0` y `salmon check invalid.salmon` con `1`.
 5. La biblioteca pueda usarse sin depender del CLI.
 6. El código supere formato, lint y toda la suite de pruebas del workspace.
+
+## Entregables de documentación
+
+- `docs/diagrams/class-diagram.drawio`: diagrama de clases editable del modelo público y del pipeline interno.
+- `docs/diagrams/architecture.drawio`: diagrama de arquitectura editable con biblioteca, CLI y consumidores futuros.
+- `docs/user-manual.md`: manual de usuario en español con instalación, sintaxis, ejemplos, validaciones y resolución de errores.
+- El nombre se expande oficialmente como **Super Automata Language for Modeling, Operations, and Notation**.

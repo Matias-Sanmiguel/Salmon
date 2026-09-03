@@ -42,6 +42,9 @@ crates/salmon-cli/tests/check.rs                 process-level CLI tests
 crates/salmon-cli/tests/fixtures/valid.salmon   valid CLI fixture
 crates/salmon-cli/tests/fixtures/invalid.salmon invalid CLI fixture
 README.md                                       syntax and command quick start
+docs/user-manual.md                             complete Spanish user guide
+docs/diagrams/class-diagram.drawio              editable class diagram
+docs/diagrams/architecture.drawio               editable architecture diagram
 ```
 
 ### Task 1: Workspace and public automaton model
@@ -809,6 +812,88 @@ Expected: no matches.
 ```bash
 git add README.md crates
 git commit -m "docs: add Salmon language quick start"
+```
+
+### Task 9: Editable Draw.io diagrams
+
+**Files:**
+- Create: `docs/diagrams/class-diagram.drawio`
+- Create: `docs/diagrams/architecture.drawio`
+
+**Interfaces:**
+- Consumes: the implemented Rust modules and public types.
+- Produces: uncompressed Draw.io XML files editable in diagrams.net.
+
+- [ ] **Step 1: Create the class diagram**
+
+Include `Automaton`, `AutomatonKind`, `StateId`, `Symbol`, `Transition`, `Diagnostic`, `Span`, and the internal lexer/parser/semantic components. Show field names, important public function signatures, containment cardinalities, and the dependency direction toward the parser-independent model.
+
+- [ ] **Step 2: Create the architecture diagram**
+
+Show `.salmon source -> lexer -> parser -> semantic analyzer -> Automaton`, the CLI as the current consumer, and UI/algorithms/regex conversion as clearly marked future consumers. Distinguish implemented components from future components by color and include a legend.
+
+- [ ] **Step 3: Validate both Draw.io files**
+
+Run:
+
+```bash
+python3 - <<'PY'
+from pathlib import Path
+from xml.etree import ElementTree
+for path in Path('docs/diagrams').glob('*.drawio'):
+    root = ElementTree.parse(path).getroot()
+    assert root.tag == 'mxfile', path
+    assert root.find('./diagram/mxGraphModel/root') is not None, path
+print('validated 2 drawio files')
+PY
+```
+
+Expected: `validated 2 drawio files`.
+
+- [ ] **Step 4: Commit the diagrams**
+
+```bash
+git add docs/diagrams
+git commit -m "docs: add Salmon architecture diagrams"
+```
+
+### Task 10: User manual and official acronym
+
+**Files:**
+- Create: `docs/user-manual.md`
+- Modify: `README.md`
+
+**Interfaces:**
+- Consumes: final CLI behavior, grammar, diagnostics, and Draw.io paths.
+- Produces: Spanish end-user documentation and the official expansion “Super Automata Language for Modeling, Operations, and Notation”.
+
+- [ ] **Step 1: Write the Spanish manual**
+
+Cover prerequisites, build and installation, `salmon check`, exit codes, the complete grammar supported by the MVP, DFA/NFA/ε-NFA examples, inferred and explicit alphabets, quoted symbols, comments, error interpretation, troubleshooting, limitations, and links to both diagrams.
+
+- [ ] **Step 2: Add the acronym and documentation index to the README**
+
+Place **Super Automata Language for Modeling, Operations, and Notation** under the title. Link the user manual, class diagram, architecture diagram, specification, and implementation plan.
+
+- [ ] **Step 3: Verify documentation references and code examples**
+
+Run:
+
+```bash
+test -s docs/user-manual.md
+test -s docs/diagrams/class-diagram.drawio
+test -s docs/diagrams/architecture.drawio
+rg -n 'Super Automata Language for Modeling, Operations, and Notation' README.md docs/user-manual.md
+cargo test --workspace
+```
+
+Expected: all files are non-empty, the acronym appears in README and manual, and all tests pass.
+
+- [ ] **Step 4: Commit the manual and acronym**
+
+```bash
+git add README.md docs/user-manual.md
+git commit -m "docs: add Salmon user manual and acronym"
 ```
 
 ## Completion Evidence
