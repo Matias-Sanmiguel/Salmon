@@ -1,7 +1,17 @@
 # Salmon
 
-Salmon (Super Automata Language for Modeling, Operations, and Notation) is a
-compact declarative language for describing and validating finite automata.
+**Super Automata Language for Modeling, Operations, and Notation**
+
+Salmon is a compact declarative language for describing and validating finite
+automata.
+
+## Documentation
+
+- [User manual (Spanish)](docs/user-manual.md)
+- [Class diagram](docs/diagrams/class-diagram.drawio)
+- [Architecture diagram](docs/diagrams/architecture.drawio)
+- [Language specification](docs/superpowers/specs/2026-09-02-salmon-language-design.md)
+- [MVP implementation plan](docs/superpowers/plans/2026-09-02-salmon-language-mvp.md)
 
 ## Quick start
 
