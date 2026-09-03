@@ -215,6 +215,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_destinations(&mut self) -> Option<Vec<Spanned<String>>> {
+        self.skip_newlines();
         if !matches!(self.current().kind, TokenKind::LeftBracket) {
             return Some(vec![self.parse_identifier("a destination state")?]);
         }
@@ -425,6 +426,23 @@ mod tests {
         assert_eq!(states.len(), 2);
         assert_eq!(states[0].transitions[0].destinations[0].value, "q1");
         assert_eq!(states[1].transitions[0].destinations.len(), 2);
+    }
+
+    #[test]
+    fn parses_a_bracketed_destination_list_after_a_newline() {
+        let (tokens, lex_errors) = lex("nfa x { q0: a =\n[q1, q2] }");
+        assert!(lex_errors.is_empty());
+
+        let ast = parse_tokens(&tokens).unwrap();
+        let state = ast
+            .items
+            .iter()
+            .find_map(|item| match item {
+                AstItem::State(state) => Some(state),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(state.transitions[0].destinations.len(), 2);
     }
 
     #[test]
