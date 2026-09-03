@@ -1,0 +1,9 @@
+// Usa eps para entrar al estado que reconoce una o más letras a.
+enfa one_or_more_a {
+    alphabet: a
+    initial: start
+    final: accepting
+
+    start: eps=reading
+    reading: a=[reading, accepting]
+}

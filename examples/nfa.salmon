@@ -1,0 +1,9 @@
+// Acepta cadenas sobre {a, b} que contienen la subcadena "ab".
+nfa contains_ab {
+    initial: searching
+    final: found
+
+    searching: a=[searching, saw_a], b=searching
+    saw_a: b=found
+    found: a=found, b=found
+}
