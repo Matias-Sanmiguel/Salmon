@@ -50,12 +50,27 @@ fn run(path: &OsString, input: &OsString) -> ExitCode {
         }
     };
 
-    if salmon_lang::accepts(&automaton, &input) {
-        println!("OK");
-        ExitCode::SUCCESS
+    let accepted = salmon_lang::accepts(&automaton, &input);
+    match write_one_shot_result(accepted, io::stdout().lock()) {
+        Ok(status) => status,
+        Err(error) => {
+            let detail = match error.kind() {
+                io::ErrorKind::BrokenPipe => "broken pipe".to_owned(),
+                _ => error.to_string(),
+            };
+            let _ = writeln!(io::stderr().lock(), "error: one-shot I/O: {detail}");
+            ExitCode::from(2)
+        }
+    }
+}
+
+fn write_one_shot_result<W: Write>(accepted: bool, mut writer: W) -> io::Result<ExitCode> {
+    if accepted {
+        writeln!(writer, "OK")?;
+        Ok(ExitCode::SUCCESS)
     } else {
-        println!("NOT");
-        ExitCode::from(1)
+        writeln!(writer, "NOT")?;
+        Ok(ExitCode::from(1))
     }
 }
 

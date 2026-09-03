@@ -35,6 +35,39 @@ fn one_shot_returns_not_and_one_for_a_rejected_word() {
     assert_eq!(output.stdout, b"NOT\n");
 }
 
+#[cfg(unix)]
+fn run_with_closed_stdout(input: &str) -> std::process::Output {
+    use std::os::fd::OwnedFd;
+    use std::os::unix::net::UnixStream;
+
+    let (reader, writer) = UnixStream::pair().unwrap();
+    drop(reader);
+
+    salmon()
+        .args(["run", dfa(), input])
+        .stdout(Stdio::from(OwnedFd::from(writer)))
+        .output()
+        .unwrap()
+}
+
+#[cfg(unix)]
+#[test]
+fn accepted_one_shot_reports_a_closed_stdout_without_panicking() {
+    let output = run_with_closed_stdout("11");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(output.stderr, b"error: one-shot I/O: broken pipe\n");
+}
+
+#[cfg(unix)]
+#[test]
+fn rejected_one_shot_reports_a_closed_stdout_without_panicking() {
+    let output = run_with_closed_stdout("1");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(output.stderr, b"error: one-shot I/O: broken pipe\n");
+}
+
 #[test]
 fn interactive_session_prints_a_prompt_for_each_word() {
     let mut child = salmon()

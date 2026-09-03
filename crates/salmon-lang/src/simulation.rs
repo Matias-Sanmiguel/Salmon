@@ -74,6 +74,12 @@ mod tests {
     }
 
     #[test]
+    fn computes_epsilon_closure_after_consuming_a_symbol() {
+        let machine = machine("enfa x { initial:q0 final:q2 q0:a=q1 q1:eps=q2 }");
+        assert!(accepts(&machine, &[symbol("a")]));
+    }
+
+    #[test]
     fn unknown_symbols_are_rejected() {
         let machine = machine("nfa x { initial:q0 final:q1 q0:a=q1 }");
         assert!(!accepts(&machine, &[symbol("unknown")]));
