@@ -3,6 +3,9 @@ use std::ffi::OsString;
 use std::path::Path;
 use std::process::ExitCode;
 
+#[allow(dead_code)] // The run command consumes this private module in the next implementation task.
+mod input;
+
 fn main() -> ExitCode {
     let args: Vec<OsString> = env::args_os().skip(1).collect();
     let [command, path] = args.as_slice() else {
