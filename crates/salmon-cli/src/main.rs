@@ -1,5 +1,6 @@
 use std::env;
 use std::ffi::OsString;
+use std::io::{self, BufRead, Write};
 use std::path::Path;
 use std::process::ExitCode;
 
@@ -9,6 +10,7 @@ fn main() -> ExitCode {
     let args: Vec<OsString> = env::args_os().skip(1).collect();
     match args.as_slice() {
         [command, path] if command == "check" => check(path),
+        [command, path] if command == "run" => run_interactive_command(path),
         [command, path, input] if command == "run" => run(path, input),
         _ => usage(),
     }
@@ -54,6 +56,52 @@ fn run(path: &OsString, input: &OsString) -> ExitCode {
     } else {
         println!("NOT");
         ExitCode::from(1)
+    }
+}
+
+fn run_interactive_command(path: &OsString) -> ExitCode {
+    let automaton = match load_automaton(path, 2) {
+        Ok(automaton) => automaton,
+        Err(status) => return status,
+    };
+
+    match run_interactive(&automaton, io::stdin().lock(), io::stdout().lock()) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("error: interactive I/O: {error}");
+            ExitCode::from(2)
+        }
+    }
+}
+
+fn run_interactive<R: BufRead, W: Write>(
+    automaton: &salmon_lang::Automaton,
+    mut reader: R,
+    mut writer: W,
+) -> io::Result<()> {
+    writeln!(writer, "Salmon — {}", automaton.name)?;
+
+    let mut line = String::new();
+    loop {
+        write!(writer, "> ")?;
+        writer.flush()?;
+
+        line.clear();
+        if reader.read_line(&mut line)? == 0 {
+            return Ok(());
+        }
+
+        let line = line.strip_suffix('\n').unwrap_or(&line);
+        let line = line.strip_suffix('\r').unwrap_or(line);
+        if line == ":quit" {
+            return Ok(());
+        }
+
+        match input::parse_input(line, &automaton.alphabet) {
+            Ok(input) if salmon_lang::accepts(automaton, &input) => writeln!(writer, "OK")?,
+            Ok(_) => writeln!(writer, "NOT")?,
+            Err(error) => writeln!(writer, "ERROR: {error}")?,
+        }
     }
 }
 
