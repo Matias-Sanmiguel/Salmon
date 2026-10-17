@@ -6,6 +6,13 @@ use std::process::ExitCode;
 
 mod input;
 
+// Reporting an error must not panic if the diagnostic stream is also closed.
+macro_rules! report_error {
+    ($($argument:tt)*) => {
+        { let _ = writeln!(io::stderr().lock(), $($argument)*); }
+    };
+}
+
 fn main() -> ExitCode {
     let args: Vec<OsString> = env::args_os().skip(1).collect();
     match args.as_slice() {
@@ -17,7 +24,7 @@ fn main() -> ExitCode {
 }
 
 fn usage() -> ExitCode {
-    eprintln!("usage:\n  salmon check <file.salmon>\n  salmon run <file.salmon> [input]");
+    report_error!("usage:\n  salmon check <file.salmon>\n  salmon run <file.salmon> [input]");
     ExitCode::from(2)
 }
 
@@ -37,7 +44,7 @@ fn run(path: &OsString, input: &OsString) -> ExitCode {
     let input = match input.to_str() {
         Some(input) => input,
         None => {
-            eprintln!("ERROR: input must be valid Unicode");
+            report_error!("ERROR: input must be valid Unicode");
             return ExitCode::from(2);
         }
     };
@@ -45,7 +52,7 @@ fn run(path: &OsString, input: &OsString) -> ExitCode {
     let input = match input::parse_input(input, &automaton.alphabet) {
         Ok(input) => input,
         Err(error) => {
-            eprintln!("ERROR: {error}");
+            report_error!("ERROR: {error}");
             return ExitCode::from(2);
         }
     };
@@ -83,7 +90,7 @@ fn run_interactive_command(path: &OsString) -> ExitCode {
     match run_interactive(&automaton, io::stdin().lock(), io::stdout().lock()) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
-            eprintln!("error: interactive I/O: {error}");
+            report_error!("error: interactive I/O: {error}");
             ExitCode::from(2)
         }
     }
@@ -127,7 +134,7 @@ fn load_automaton(
     let source = match std::fs::read_to_string(path) {
         Ok(source) => source,
         Err(error) => {
-            eprintln!(
+            report_error!(
                 "error: could not read {}: {error}",
                 Path::new(path).display()
             );
@@ -144,7 +151,7 @@ fn load_automaton(
         Ok(automaton) => Ok(automaton),
         Err(diagnostics) => {
             for diagnostic in diagnostics {
-                eprintln!(
+                report_error!(
                     "{}",
                     salmon_lang::render_diagnostic(&source_name, &source, &diagnostic)
                 );

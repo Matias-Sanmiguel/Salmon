@@ -34,6 +34,17 @@ Build the workspace with Cargo:
 cargo build
 ```
 
+To install or update the `salmon` command from this checkout:
+
+```bash
+cargo install --path crates/salmon-cli --force
+salmon run examples/dfa.salmon
+```
+
+Run these commands from the repository root. If `salmon` is not found, ensure
+Cargo's binary directory (usually `~/.cargo/bin`) is on your `PATH`, or use
+the `cargo run` commands below.
+
 Salmon requires Rust 1.88 or newer. Install Rust and Cargo with
 [rustup](https://rustup.rs/) before building.
 

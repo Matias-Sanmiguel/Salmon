@@ -1,6 +1,17 @@
 use salmon_lang::{AutomatonKind, StateId, Symbol, Transition, parse};
 
 #[test]
+fn rejects_repeated_alphabet_declarations_even_with_disjoint_symbols() {
+    let source = "nfa x { alphabet:a alphabet:b initial:q0 final:q1 q0:a=q1 }";
+    let errors = parse("duplicate.salmon", source).unwrap_err();
+    assert!(
+        errors.iter().any(
+            |error| error.code == "SEM002" && error.message == "duplicate alphabet declaration"
+        )
+    );
+}
+
+#[test]
 fn readme_example_stays_valid() {
     let source = include_str!("../../../README.md");
     let start = source.find("```salmon\n").unwrap() + "```salmon\n".len();

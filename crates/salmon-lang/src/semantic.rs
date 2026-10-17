@@ -9,7 +9,7 @@ pub(crate) fn analyze(mut ast: AstAutomaton) -> Result<Automaton, Vec<Diagnostic
 
     for item in std::mem::take(&mut ast.items) {
         match item {
-            AstItem::Alphabet { symbols, .. } => analysis.collect_alphabet(symbols),
+            AstItem::Alphabet { symbols, span } => analysis.collect_alphabet(symbols, span),
             AstItem::Initial { state, span } => analysis.collect_initial(state, span),
             AstItem::Final { states, span } => analysis.collect_finals(states, span),
             AstItem::State(state) => analysis.collect_state(state.name, state.transitions),
@@ -46,7 +46,14 @@ struct RawTransition {
 }
 
 impl Analysis {
-    fn collect_alphabet(&mut self, symbols: Vec<Spanned<String>>) {
+    fn collect_alphabet(&mut self, symbols: Vec<Spanned<String>>, span: Span) {
+        if self.explicit_alphabet {
+            self.diagnostics.push(Diagnostic::error(
+                "SEM002",
+                "duplicate alphabet declaration",
+                span,
+            ));
+        }
         self.explicit_alphabet = true;
 
         for symbol in symbols {

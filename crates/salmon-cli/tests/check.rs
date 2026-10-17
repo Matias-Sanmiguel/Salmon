@@ -1,6 +1,34 @@
 use std::path::PathBuf;
 use std::process::Command;
 
+#[cfg(unix)]
+#[test]
+fn closed_stderr_preserves_error_exit_codes_without_panicking() {
+    use std::os::fd::OwnedFd;
+    use std::os::unix::net::UnixStream;
+    use std::process::Stdio;
+
+    let invalid = fixture("invalid.salmon");
+    let valid = fixture("valid.salmon");
+    let cases = [
+        (vec![], 2),
+        (vec!["check", "does-not-exist.salmon"], 2),
+        (vec!["check", invalid.to_str().unwrap()], 1),
+        (vec!["run", invalid.to_str().unwrap(), "a"], 2),
+        (vec!["run", valid.to_str().unwrap(), "\"unclosed"], 2),
+    ];
+    for (args, expected) in cases {
+        let (reader, writer) = UnixStream::pair().unwrap();
+        drop(reader);
+        let output = Command::new(env!("CARGO_BIN_EXE_salmon"))
+            .args(&args)
+            .stderr(Stdio::from(OwnedFd::from(writer)))
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(expected), "args: {args:?}");
+    }
+}
+
 fn fixture(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures")

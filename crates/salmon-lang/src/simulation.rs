@@ -3,6 +3,12 @@ use std::collections::HashSet;
 use crate::{Automaton, StateId, Symbol};
 
 pub fn accepts(automaton: &Automaton, input: &[Symbol]) -> bool {
+    if input
+        .iter()
+        .any(|symbol| !automaton.alphabet.contains(symbol))
+    {
+        return false;
+    }
     let mut current = epsilon_closure(automaton, HashSet::from([automaton.initial.clone()]));
 
     for symbol in input {
@@ -83,5 +89,12 @@ mod tests {
     fn unknown_symbols_are_rejected() {
         let machine = machine("nfa x { initial:q0 final:q1 q0:a=q1 }");
         assert!(!accepts(&machine, &[symbol("unknown")]));
+    }
+
+    #[test]
+    fn public_models_cannot_accept_symbols_outside_the_alphabet() {
+        let mut machine = machine("nfa x { initial:q0 final:q1 q0:a=q1 }");
+        machine.alphabet.clear();
+        assert!(!accepts(&machine, &[symbol("a")]));
     }
 }
