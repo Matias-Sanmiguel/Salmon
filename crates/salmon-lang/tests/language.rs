@@ -13,7 +13,7 @@ fn rejects_repeated_alphabet_declarations_even_with_disjoint_symbols() {
 
 #[test]
 fn readme_example_stays_valid() {
-    let source = include_str!("../../../README.md");
+    let source = include_str!("../../../README.md").replace("\r\n", "\n");
     // Git checkouts may use LF or CRLF depending on the platform.
     for source in [source.to_owned(), source.replace('\n', "\r\n")] {
         let example = source
