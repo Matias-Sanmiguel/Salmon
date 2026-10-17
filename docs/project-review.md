@@ -14,6 +14,10 @@
   fuera de `alphabet` si un consumidor construía un modelo con una transición
   inconsistente. Ahora se rechazan las palabras que contienen esos símbolos.
   Los archivos cargados con `parse` ya pasaban por la validación semántica.
+- **Prueba de documentación incompatible con Windows.** La primera ejecución
+  de CI descubrió que extraer el ejemplo del README buscando `LF` literalmente
+  fallaba con los saltos `CRLF` de Windows. La prueba ahora extrae por líneas y
+  comprueba ambas convenciones de salto de línea.
 
 Las pruebas de regresión fallaron antes de aplicar las correcciones.
 

@@ -14,9 +14,17 @@ fn rejects_repeated_alphabet_declarations_even_with_disjoint_symbols() {
 #[test]
 fn readme_example_stays_valid() {
     let source = include_str!("../../../README.md");
-    let start = source.find("```salmon\n").unwrap() + "```salmon\n".len();
-    let end = source[start..].find("\n```").unwrap() + start;
-    parse("README.md", &source[start..end]).unwrap();
+    // Git checkouts may use LF or CRLF depending on the platform.
+    for source in [source.to_owned(), source.replace('\n', "\r\n")] {
+        let example = source
+            .lines()
+            .skip_while(|line| *line != "```salmon")
+            .skip(1)
+            .take_while(|line| *line != "```")
+            .collect::<Vec<_>>()
+            .join("\n");
+        parse("README.md", &example).unwrap();
+    }
 }
 
 #[test]
