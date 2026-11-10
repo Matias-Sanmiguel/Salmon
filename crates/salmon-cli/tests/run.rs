@@ -201,3 +201,46 @@ fn one_shot_rejects_a_non_unicode_input_argument() {
     assert!(output.stdout.is_empty());
     assert_eq!(output.stderr, b"ERROR: input must be valid Unicode\n");
 }
+
+fn interactive(input: &[u8]) -> std::process::Output {
+    let mut child = salmon()
+        .args(["run", dfa()])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child.stdin.as_mut().unwrap().write_all(input).unwrap();
+    child.wait_with_output().unwrap()
+}
+
+#[test]
+fn interactive_session_ignores_a_leading_byte_order_mark() {
+    // PowerShell 5.1 with `$OutputEncoding` set to UTF-8 sends two BOMs at the start of a pipe.
+    let inputs: [&[u8]; 2] = [
+        b"\xef\xbb\xbf11\r\n:quit\r\n",
+        b"\xef\xbb\xbf\xef\xbb\xbf11\r\n:quit\r\n",
+    ];
+
+    for input in inputs {
+        let output = interactive(input);
+        assert_eq!(output.status.code(), Some(0), "{input:?}");
+        assert_eq!(
+            output.stdout, b"Salmon \xe2\x80\x94 even_ones\n> OK\n> ",
+            "{input:?}"
+        );
+    }
+}
+
+#[test]
+fn interactive_session_recovers_after_a_line_that_is_not_utf8() {
+    // `a\xa4` is "añ" in code page 850, the usual cmd code page for Spanish.
+    let output = interactive(b"a\xa4\n11\n:quit\n");
+
+    assert_eq!(output.status.code(), Some(0));
+    assert!(output.stderr.is_empty());
+    assert_eq!(
+        output.stdout,
+        b"Salmon \xe2\x80\x94 even_ones\n> ERROR: input must be valid UTF-8\n> OK\n> "
+    );
+}

@@ -1,3 +1,5 @@
+pub(crate) const BYTE_ORDER_MARK: char = '\u{feff}';
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Span {
     pub start: usize,
@@ -44,7 +46,9 @@ impl Diagnostic {
 
 pub fn render_diagnostic(source_name: &str, source: &str, diagnostic: &Diagnostic) -> String {
     let start = previous_character_boundary(source, diagnostic.span.start);
+    // Editors do not show the BOM, so it does not count as a column.
     let prefix = &source[..start];
+    let prefix = prefix.strip_prefix(BYTE_ORDER_MARK).unwrap_or(prefix);
     let line = prefix.bytes().filter(|byte| *byte == b'\n').count() + 1;
     let column = prefix
         .rsplit('\n')

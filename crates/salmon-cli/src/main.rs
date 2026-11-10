@@ -103,18 +103,32 @@ fn run_interactive<R: BufRead, W: Write>(
 ) -> io::Result<()> {
     writeln!(writer, "Salmon — {}", automaton.name)?;
 
-    let mut line = String::new();
+    let mut bytes = Vec::new();
+    let mut first_line = true;
     loop {
         write!(writer, "> ")?;
         writer.flush()?;
 
-        line.clear();
-        if reader.read_line(&mut line)? == 0 {
+        // Read raw bytes so a line that is not UTF-8 (for example, from cmd with code page 850)
+        // prints `ERROR` and the session continues instead of ending.
+        bytes.clear();
+        if reader.read_until(b'\n', &mut bytes)? == 0 {
             return Ok(());
         }
 
-        let line = line.strip_suffix('\n').unwrap_or(&line);
+        let is_first_line = std::mem::replace(&mut first_line, false);
+        let Ok(line) = std::str::from_utf8(&bytes) else {
+            writeln!(writer, "ERROR: input must be valid UTF-8")?;
+            continue;
+        };
+        let line = line.strip_suffix('\n').unwrap_or(line);
         let line = line.strip_suffix('\r').unwrap_or(line);
+        // PowerShell 5.1 with `$OutputEncoding` set to UTF-8 sends two BOMs at the start of a pipe.
+        let line = if is_first_line {
+            line.trim_start_matches('\u{feff}')
+        } else {
+            line
+        };
         if line == ":quit" {
             return Ok(());
         }
@@ -127,12 +141,28 @@ fn run_interactive<R: BufRead, W: Write>(
     }
 }
 
+// PowerShell 5.1 writes UTF-16 LE with a BOM when redirecting with `>`. Only the BOM is checked:
+// without it UTF-16 cannot be told apart reliably, so that case keeps the generic UTF-8 error.
+fn is_utf16(path: &OsString) -> bool {
+    let mut start = [0; 2];
+    std::fs::File::open(path)
+        .and_then(|mut file| io::Read::read_exact(&mut file, &mut start))
+        .is_ok_and(|()| matches!(start, [0xff, 0xfe] | [0xfe, 0xff]))
+}
+
 fn load_automaton(
     path: &OsString,
     invalid_automaton_exit: u8,
 ) -> Result<salmon_lang::Automaton, ExitCode> {
     let source = match std::fs::read_to_string(path) {
         Ok(source) => source,
+        Err(error) if error.kind() == io::ErrorKind::InvalidData && is_utf16(path) => {
+            report_error!(
+                "error: could not read {}: the file is saved as UTF-16; save it as UTF-8 and try again",
+                Path::new(path).display()
+            );
+            return Err(ExitCode::from(2));
+        }
         Err(error) => {
             report_error!(
                 "error: could not read {}: {error}",
