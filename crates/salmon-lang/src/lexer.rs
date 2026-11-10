@@ -1,4 +1,4 @@
-use crate::diagnostic::{Diagnostic, Span};
+use crate::diagnostic::{BYTE_ORDER_MARK, Diagnostic, Span};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Token {
@@ -41,6 +41,8 @@ pub(crate) fn lex(source: &str) -> (Vec<Token>, Vec<Diagnostic>) {
 
         match character {
             ' ' | '\t' | '\r' => index += character.len_utf8(),
+            // Byte order mark that some Windows editors write at the start of a file.
+            BYTE_ORDER_MARK if index == 0 => index += character.len_utf8(),
             '\n' => {
                 tokens.push(token(TokenKind::Newline, index, index + 1));
                 index += 1;

@@ -237,3 +237,11 @@ fn returns_lexical_and_syntax_errors_without_running_semantics() {
     assert!(errors.iter().any(|error| error.code == "SYN001"));
     assert!(!errors.iter().any(|error| error.code.starts_with("SEM")));
 }
+
+#[test]
+fn ignores_a_leading_utf8_byte_order_mark() {
+    // Notepad ("UTF-8 with BOM") and PowerShell 5.1 add this invisible character.
+    let source = "\u{feff}dfa x { initial: q0 final: q0 q0: a=q0 }";
+    let automaton = parse("bom.salmon", source).unwrap();
+    assert_eq!(automaton.name, "x");
+}

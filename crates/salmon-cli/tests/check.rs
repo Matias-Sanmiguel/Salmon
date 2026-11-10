@@ -92,3 +92,69 @@ fn usage_and_io_failures_exit_two() {
         .unwrap();
     assert_eq!(missing.status.code(), Some(2));
 }
+
+fn check_with_contents(name: &str, contents: &[u8]) -> std::process::Output {
+    let path = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(name);
+    std::fs::write(&path, contents).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_salmon"))
+        .arg("check")
+        .arg(&path)
+        .output()
+        .unwrap();
+    std::fs::remove_file(&path).unwrap();
+    output
+}
+
+#[test]
+fn utf8_file_with_byte_order_mark_is_valid() {
+    let mut contents = b"\xef\xbb\xbf".to_vec();
+    contents.extend_from_slice(include_bytes!("fixtures/valid.salmon"));
+
+    let output = check_with_contents("utf8-bom.salmon", &contents);
+    assert_eq!(output.status.code(), Some(0));
+    assert!(output.stderr.is_empty());
+}
+
+#[test]
+fn utf8_byte_order_mark_does_not_shift_error_columns() {
+    let mut contents = b"\xef\xbb\xbf".to_vec();
+    contents.extend_from_slice(b"dfa x { @ }\n");
+
+    let output = check_with_contents("utf8-bom-invalid.salmon", &contents);
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(
+        stderr.contains("utf8-bom-invalid.salmon:1:9: error[SYN001]"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn utf16_files_are_rejected_with_a_clear_message() {
+    // PowerShell 5.1 writes UTF-16 LE with `>`; UTF-16 BE is less common but is detected too.
+    let text = std::str::from_utf8(include_bytes!("fixtures/valid.salmon")).unwrap();
+    let little_endian = [0xff, 0xfe]
+        .into_iter()
+        .chain(text.encode_utf16().flat_map(u16::to_le_bytes))
+        .collect::<Vec<_>>();
+    let big_endian = [0xfe, 0xff]
+        .into_iter()
+        .chain(text.encode_utf16().flat_map(u16::to_be_bytes))
+        .collect::<Vec<_>>();
+
+    for (name, contents) in [
+        ("utf16-le.salmon", little_endian),
+        ("utf16-be.salmon", big_endian),
+    ] {
+        let output = check_with_contents(name, &contents);
+        assert_eq!(output.status.code(), Some(2), "{name}");
+        assert!(output.stdout.is_empty(), "{name}");
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        assert!(
+            stderr.contains(name)
+                && stderr.contains("UTF-16")
+                && stderr.contains("save it as UTF-8"),
+            "{name}: {stderr}"
+        );
+    }
+}
