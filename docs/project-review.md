@@ -31,7 +31,7 @@ Las pruebas de regresión fallaron antes de aplicar las correcciones.
   palabras mediante el CLI interactivo compilado.
 - Pruebas existentes de parser, validación, entradas, clausura epsilon, ciclos,
   interacción y pipes cerrados.
-- CI en GitHub Actions para Linux y Windows, usando Rust 1.88.0, formato,
+- CI en GitHub Actions para Linux, Windows y macOS (Apple Silicon e Intel), usando Rust 1.88.0, formato,
   Clippy estricto, pruebas y documentación.
 
 No se reprodujo una discrepancia entre las definiciones de los tres ejemplos

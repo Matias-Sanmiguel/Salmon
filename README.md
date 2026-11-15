@@ -48,6 +48,23 @@ the `cargo run` commands below.
 Salmon requires Rust 1.88 or newer. Install Rust and Cargo with
 [rustup](https://rustup.rs/) before building.
 
+### Supported platforms
+
+CI builds and tests Salmon natively with Rust 1.88.0 on these targets:
+
+| Target | Runner |
+| --- | --- |
+| `x86_64-unknown-linux-gnu` | `ubuntu-latest` |
+| `x86_64-pc-windows-msvc` | `windows-latest` |
+| `aarch64-apple-darwin` (Apple Silicon) | `macos-15` |
+| `x86_64-apple-darwin` (Intel) | `macos-15-intel` |
+
+Other targets may compile but are not tested. No prebuilt binaries are
+published yet; build from source as shown above.
+
+On macOS, the test for non-UTF-8 file names does not run because APFS rejects
+those names.
+
 Save an automaton in a `.salmon` file, then validate it:
 
 ```bash

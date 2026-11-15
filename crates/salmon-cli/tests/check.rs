@@ -56,7 +56,7 @@ fn invalid_definition_exits_one_with_a_positioned_error() {
     assert!(stderr.contains("invalid.salmon:4:9: error[SEM004]"));
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn positioned_error_preserves_a_non_utf8_unix_filename() {
     use std::ffi::OsString;
