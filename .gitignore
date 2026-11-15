@@ -2,3 +2,4 @@
 .superpowers/
 /target/
 **/*.rs.bk
+/dist/

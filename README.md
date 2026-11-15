@@ -59,11 +59,42 @@ CI builds and tests Salmon natively with Rust 1.88.0 on these targets:
 | `aarch64-apple-darwin` (Apple Silicon) | `macos-15` |
 | `x86_64-apple-darwin` (Intel) | `macos-15-intel` |
 
-Other targets may compile but are not tested. No prebuilt binaries are
-published yet; build from source as shown above.
+Other targets may compile but are not tested. Prebuilt binaries are published
+for macOS only; on Linux and Windows, build from source as shown above.
 
 On macOS, the test for non-UTF-8 file names does not run because APFS rejects
 those names.
+
+### Installing on macOS
+
+Starting with the first tagged release, each release includes
+`salmon-<version>-macos-universal.tar.gz`, a single
+binary for Apple Silicon and Intel that requires macOS 11 or newer. Download it
+and its `.sha256` file from the
+[releases page](https://github.com/Matias-Sanmiguel/Salmon/releases), then:
+
+```bash
+shasum -a 256 -c salmon-0.1.0-macos-universal.tar.gz.sha256
+tar -xzf salmon-0.1.0-macos-universal.tar.gz
+xattr -d com.apple.quarantine salmon-0.1.0-macos-universal/salmon 2>/dev/null || true
+mkdir -p ~/.local/bin
+mv salmon-0.1.0-macos-universal/salmon ~/.local/bin/
+```
+
+The binary is not signed with an Apple Developer ID or notarized. A browser
+download marks it as quarantined and macOS stops it with no message (exit code
+137). The `xattr` line removes that mark. Files downloaded with `curl` are not
+quarantined.
+
+If `salmon` is not found, add `~/.local/bin` to your `PATH` in zsh:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+To update, repeat the steps with the new archive. To uninstall, run
+`rm ~/.local/bin/salmon`. See [docs/macos.md](docs/macos.md) for details.
 
 Save an automaton in a `.salmon` file, then validate it:
 
